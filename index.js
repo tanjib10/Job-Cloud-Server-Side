@@ -30,12 +30,19 @@ async function run() {
    //  await client.connect();
 
    const brandCollection = client.db('job-cloud').collection('job-categories');
+
    app.get('/job', async (req, res) => {
       const cursor = brandCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
+  app.get('/job/:category', async (req,res) => {
+     const category = req.params.category;
+     const query = {category:category}
+     const items = await brandCollection.find(query).toArray();
+     res.send(items)
+    })
 
 
 
