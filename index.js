@@ -65,12 +65,22 @@ async function run() {
     const bids = await bidCollection.find({ bidderEmail: userEmail }).toArray();
     res.json(bids);
   } catch (error) {
-    console.error('Error fetching bids:', error);
+    ('Error fetching bids:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 
+app.get('/bid-requests/:ownerEmail', async (req, res) => {
+  try {
+    const ownerEmail = req.params.ownerEmail;
+    const bidRequests = await bidCollection.find({ ownerEmail }).toArray();
+    res.json(bidRequests);
+  } catch (error) {
+    ('Error fetching bid requests:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
     app.post('/bid/:id', async (req, res) => {
@@ -97,7 +107,7 @@ async function run() {
 
 app.post('/job/add', async (req, res) => {
   try {
-        console.log('Received request to add a job');
+        ('Received request to add a job');
     const { ownerEmail, jobTitle, deadline, description, category, minPrice, maxPrice } = req.body;
 
     if (!ownerEmail || !jobTitle || !deadline || !category || !minPrice || !maxPrice) {
@@ -117,20 +127,39 @@ app.post('/job/add', async (req, res) => {
     const result = await newJobCollection.insertOne(newJob);
 
     if (result.insertedCount === 1) {
-          console.log('Job added successfully');
+          ('Job added successfully');
       res.status(201).json({ message: 'Job added successfully' });
     } else {
       res.status(500).json({ error: 'Failed to add job' });
     }
   } catch (error) {
-    //  console.error('Error adding job:', error);
-    console.error('Error adding job:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 
+app.put('/bid-requests/accept/:id', async (req, res) => {
+  try {
+    const bidId = req.params.id;
+    await bidCollection.updateOne({ _id: new ObjectId(bidId) }, { $set: { status: 'in progress' } });
 
+    res.status(200).json({ message: 'Bid accepted successfully' });
+  } catch (error) {
+    ('Error accepting bid:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/bid-requests/reject/:id', async (req, res) => {
+  try {
+    const bidId = req.params.id;
+    await bidCollection.updateOne({ _id: new ObjectId(bidId) }, { $set: { status: 'rejected' } });
+
+    res.status(200).json({ message: 'Bid rejected successfully' });
+  } catch (error) {
+    ('Error rejecting bid:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 app.put('/job/update/:id', async (req, res) => {
@@ -153,13 +182,13 @@ app.put('/job/update/:id', async (req, res) => {
       { $set: updatedJob }
     );
     if (result.modifiedCount === 1) {
-      console.log('Job updated successfully');
+      ('Job updated successfully');
       res.status(200).json({ message: 'Job updated successfully' });
     } else {
       res.status(404).json({ error: 'Job not found or no changes were made' });
     }
   } catch (error) {
-    console.error('Error updating job:', error);
+    ('Error updating job:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -180,7 +209,7 @@ app.put('/bid/update/:id', async (req, res) => {
       res.status(404).json({ error: 'Bid not found or no changes were made' });
     }
   } catch (error) {
-    console.error('Error updating bid status:', error);
+    ('Error updating bid status:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -201,7 +230,7 @@ app.put('/bid/complete/:id', async (req, res) => {
       res.status(404).json({ error: 'Bid not found or no changes were made' });
     }
   } catch (error) {
-    console.error('Error completing bid:', error);
+    ('Error completing bid:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -217,31 +246,31 @@ app.delete('/job/delete/:id', async (req, res) => {
     const result = await newJobCollection.deleteOne({ _id: new ObjectId(jobId) });
 
     if (result.deletedCount === 1) {
-      console.log('Job deleted successfully');
+      ('Job deleted successfully');
       res.status(200).json({ message: 'Job deleted successfully' });
     } else {
       res.status(404).json({ error: 'Job not found' });
     }
   } catch (error) {
-    console.error('Error deleting job:', error);
+    ('Error deleting job:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
-    console.log('Pinged your deployment. You successfully connected to MongoDB!');
+    ('Pinged your deployment. You successfully connected to MongoDB!');
   } finally {
     // await client.close();
   }
 }
 
-run().catch(console.dir);
+run().catch();
 
 app.get('/', (req, res) => {
   res.send('server is running');
 });
 
 app.listen(port, () => {
-  console.log('server is running');
+  ('server is running');
 });
