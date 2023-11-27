@@ -52,6 +52,11 @@ async function run() {
       const job = await brandCollection.findOne({ _id: new ObjectId(jobId) });
       res.json(job);
     });
+    app.get('/job/new/details/:id', async (req, res) => {
+      const jobId = req.params.id;
+      const job = await newJobCollection.findOne({ _id: new ObjectId(jobId) });
+      res.json(job);
+    });
 
 
     app.post('/bid/:id', async (req, res) => {
@@ -118,12 +123,9 @@ app.put('/job/update/:id', async (req, res) => {
   try {
     const jobId = req.params.id;
     const { jobTitle, deadline, description, category, minPrice, maxPrice } = req.body;
-
-
     if (!jobTitle || !deadline || !description || !category || !minPrice || !maxPrice) {
       return res.status(400).json({ error: 'Incomplete job information provided' });
     }
-
     const updatedJob = {
       jobTitle,
       deadline,
@@ -132,13 +134,10 @@ app.put('/job/update/:id', async (req, res) => {
       minPrice,
       maxPrice,
     };
-
-
     const result = await newJobCollection.updateOne(
       { _id: new ObjectId(jobId) },
       { $set: updatedJob }
     );
-
     if (result.modifiedCount === 1) {
       console.log('Job updated successfully');
       res.status(200).json({ message: 'Job updated successfully' });
@@ -150,6 +149,10 @@ app.put('/job/update/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
+
+
 
 app.delete('/job/delete/:id', async (req, res) => {
   try {
