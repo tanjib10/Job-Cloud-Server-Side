@@ -59,6 +59,20 @@ async function run() {
     });
 
 
+    app.get('/bids/:email', async (req, res) => {
+  try {
+    const userEmail = req.params.email;
+    const bids = await bidCollection.find({ bidderEmail: userEmail }).toArray();
+    res.json(bids);
+  } catch (error) {
+    console.error('Error fetching bids:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
     app.post('/bid/:id', async (req, res) => {
       const jobId = req.params.id;
       const { price, deadline, bidderEmail } = req.body;
@@ -146,6 +160,48 @@ app.put('/job/update/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error updating job:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/bid/update/:id', async (req, res) => {
+  try {
+    const bidId = req.params.id;
+    const { status } = req.body;
+
+    const result = await bidCollection.updateOne(
+      { _id: new ObjectId(bidId) },
+      { $set: { status } }
+    );
+
+    if (result.modifiedCount === 1) {
+      res.status(200).json({ message: 'Bid status updated successfully' });
+    } else {
+      res.status(404).json({ error: 'Bid not found or no changes were made' });
+    }
+  } catch (error) {
+    console.error('Error updating bid status:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+app.put('/bid/complete/:id', async (req, res) => {
+  try {
+    const bidId = req.params.id;
+
+    const result = await bidCollection.updateOne(
+      { _id: new ObjectId(bidId) },
+      { $set: { status: 'complete' } }
+    );
+
+    if (result.modifiedCount === 1) {
+      res.status(200).json({ message: 'Bid completed successfully' });
+    } else {
+      res.status(404).json({ error: 'Bid not found or no changes were made' });
+    }
+  } catch (error) {
+    console.error('Error completing bid:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
