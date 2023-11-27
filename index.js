@@ -111,6 +111,64 @@ app.post('/job/add', async (req, res) => {
 });
 
 
+
+
+
+app.put('/job/update/:id', async (req, res) => {
+  try {
+    const jobId = req.params.id;
+    const { jobTitle, deadline, description, category, minPrice, maxPrice } = req.body;
+
+
+    if (!jobTitle || !deadline || !description || !category || !minPrice || !maxPrice) {
+      return res.status(400).json({ error: 'Incomplete job information provided' });
+    }
+
+    const updatedJob = {
+      jobTitle,
+      deadline,
+      description,
+      category,
+      minPrice,
+      maxPrice,
+    };
+
+
+    const result = await newJobCollection.updateOne(
+      { _id: new ObjectId(jobId) },
+      { $set: updatedJob }
+    );
+
+    if (result.modifiedCount === 1) {
+      console.log('Job updated successfully');
+      res.status(200).json({ message: 'Job updated successfully' });
+    } else {
+      res.status(404).json({ error: 'Job not found or no changes were made' });
+    }
+  } catch (error) {
+    console.error('Error updating job:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.delete('/job/delete/:id', async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    const result = await newJobCollection.deleteOne({ _id: new ObjectId(jobId) });
+
+    if (result.deletedCount === 1) {
+      console.log('Job deleted successfully');
+      res.status(200).json({ message: 'Job deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Job not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
     console.log('Pinged your deployment. You successfully connected to MongoDB!');
