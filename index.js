@@ -65,8 +65,7 @@ async function run() {
     const bids = await bidCollection.find({ bidderEmail: userEmail }).toArray();
     res.json(bids);
   } catch (error) {
-    ('Error fetching bids:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error)
   }
 });
 
@@ -77,15 +76,14 @@ app.get('/bid-requests/:ownerEmail', async (req, res) => {
     const bidRequests = await bidCollection.find({ ownerEmail }).toArray();
     res.json(bidRequests);
   } catch (error) {
-    ('Error fetching bid requests:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.log('Error fetching bid requests:', error);
   }
 });
 
 
     app.post('/bid/:id', async (req, res) => {
       const jobId = req.params.id;
-      const { price, deadline, bidderEmail } = req.body;
+      const { title, price, deadline, bidderEmail } = req.body;
 
       const job = await brandCollection.findOne({ _id: new ObjectId(jobId) });
       if (!job) {
@@ -95,6 +93,7 @@ app.get('/bid-requests/:ownerEmail', async (req, res) => {
         return res.status(400).json({ error: 'Cannot bid on your own job' });
       }
       const bid = {
+        title,
         price,
         deadline,
         bidderEmail,
@@ -218,19 +217,25 @@ app.put('/bid/update/:id', async (req, res) => {
 app.put('/bid/complete/:id', async (req, res) => {
   try {
     const bidId = req.params.id;
-
+    const { status } = req.body;
+    let newStatus;
+    if (status === 'in progress') {
+      newStatus = 'complete';
+    } else {
+      console.error('Invalid bid status');
+      return res.status(400).json({ error: 'Invalid bid status' });
+    }
     const result = await bidCollection.updateOne(
       { _id: new ObjectId(bidId) },
-      { $set: { status: 'complete' } }
+      { $set: { status: newStatus } }
     );
-
     if (result.modifiedCount === 1) {
       res.status(200).json({ message: 'Bid completed successfully' });
     } else {
       res.status(404).json({ error: 'Bid not found or no changes were made' });
     }
   } catch (error) {
-    ('Error completing bid:', error);
+    console.error('Error completing bid:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
