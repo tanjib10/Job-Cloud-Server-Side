@@ -6,7 +6,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use (cors({origin:["http://localhost:5173","https://job-cloud-75a0f.web.app", "https://job-cloud-75a0f.firebaseapp.com"]}));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yfphnhu.mongodb.net/?retryWrites=true&w=majority`;
@@ -22,7 +22,7 @@ const client = new MongoClient(uri, {
   
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
   const brandCollection = client.db('job-cloud').collection('job-categories');
     const bidCollection = client.db('job-cloud').collection('bids');
@@ -161,7 +161,7 @@ app.put('/bid-requests/reject/:id', async (req, res) => {
 });
 
 
-app.put('/job/update/:id', async (req, res) => {
+app.put('/job/update/my/:id', async (req, res) => {
   try {
     const jobId = req.params.id;
     const { jobTitle, deadline, description, category, minPrice, maxPrice } = req.body;
